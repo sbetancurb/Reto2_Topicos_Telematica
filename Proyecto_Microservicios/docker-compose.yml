@@ -1,0 +1,67 @@
+version: '3'
+services:
+  microservicio_usuarios:
+    build:
+      context: ./microservicio_usuarios
+    ports:
+      - '3001:3001'
+    networks:
+      - app_network
+    depends_on:
+      - rabbitmq
+
+  microservicio_pedidos:
+    build:
+      context: ./microservicio_pedidos
+    ports:
+      - '3002:3002'
+    networks:
+      - app_network
+    depends_on:
+      - rabbitmq
+
+  api_gateway:
+    build:
+      context: ./api_gateway
+    ports:
+      - '3000:3000'
+    networks:
+      - app_network
+
+  middleware_rpc_rest:
+    build:
+      context: ./middleware_rpc_rest
+    networks:
+      - app_network
+    depends_on:
+      - microservicio_usuarios
+      - microservicio_pedidos
+
+  middleware_rpc_grpc:
+    build:
+      context: ./middleware_rpc_grpc
+    networks:
+      - app_network
+    depends_on:
+      - microservicio_usuarios
+      - microservicio_pedidos
+
+  middleware_mom_rabbitmq:
+    build:
+      context: ./middleware_mom_rabbitmq
+    networks:
+      - app_network
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
